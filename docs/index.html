@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>考勤晾晒报表中心</title>
+  <style>
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f0f2f5;color:#333;padding:40px 20px;display:flex;flex-direction:column;align-items:center}
+    .container{max-width:900px;width:100%}
+    h1{font-size:28px;color:#1a1a2e}
+    .card{background:#fff;border-radius:12px;padding:20px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+    .card a{text-decoration:none;color:inherit;display:flex;align-items:center;gap:16px}
+    .icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px}
+    .footer{margin-top:32px;font-size:12px;color:#888}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>考勤晾晒报表中心</h1>
+    <div class="card">
+      <a href="./attendance_report.html" target="_blank">
+        <div class="icon" style="background:#e8f5e9;">&#128200;</div>
+        <div><h3>交互式考勤报表</h3><p>查看最新汇总、区域表现和明细分页。</p></div>
+      </a>
+    </div>
+    <div class="card">
+      <a href="./attendance_report_data.json" target="_blank">
+        <div class="icon" style="background:#e3f2fd;">&#123;</div>
+        <div><h3>结构化数据 JSON</h3><p>用于二次分析或系统对接。</p></div>
+      </a>
+    </div>
+    <div class="card">
+      <a href="./attendance_report_detail.csv" target="_blank">
+        <div class="icon" style="background:#fff3e0;">&#128462;</div>
+        <div><h3>明细数据 CSV</h3><p>可直接下载到 Excel 做筛选分析。</p></div>
+      </a>
+    </div>
+    <div class="footer">GitHub Pages 静态发布</div>
+  </div>
+</body>
+</html>
