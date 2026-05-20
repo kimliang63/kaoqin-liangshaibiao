@@ -506,9 +506,21 @@ def build_html(data):
             <option value="大区">仅大区</option>
             <option value="中后台">仅中后台</option>
           </select>
+          <select id="sPageSize" class="border rounded px-2 py-1 text-sm">
+            <option value="20">每页20条</option>
+            <option value="50">每页50条</option>
+            <option value="100">每页100条</option>
+          </select>
           <button id="applyRegion" class="bg-slate-900 text-white rounded px-3 py-1 text-sm">筛选</button>
         </div>
         <div id="summaryTable"></div>
+        <div class="flex justify-between items-center mt-2">
+          <div id="summaryPageInfo" class="text-sm text-slate-600"></div>
+          <div class="flex gap-2">
+            <button id="sPrevPage" class="border rounded px-3 py-1 text-sm">上一页</button>
+            <button id="sNextPage" class="border rounded px-3 py-1 text-sm">下一页</button>
+          </div>
+        </div>
       </details>
     </section>
 
@@ -595,13 +607,21 @@ def build_html(data):
     ).join('');
 
     const summarySource = DATA.group_rows || [];
+    let summaryFiltered = summarySource.slice();
+    let sPage = 1;
     function renderSummary(rows) {{
+      const pageSize = parseInt(document.getElementById('sPageSize').value, 10);
+      const pages = Math.max(1, Math.ceil(rows.length / pageSize));
+      if (sPage > pages) sPage = pages;
+      if (sPage < 1) sPage = 1;
+      const start = (sPage - 1) * pageSize;
+      const pageRows = rows.slice(start, start + pageSize);
       let html = '<table><thead><tr>' +
         '<th>区域</th><th>部门</th><th>总人数</th><th>日超8h人</th><th>未排班数</th>' +
         `<th>排班率</th><th>HUB排班正确</th><th>缺卡数</th><th>缺卡率</th>` +
         `<th>${{DATA.meta['前一日'] || '前一日'}}排班率</th><th>${{DATA.meta['前一日'] || '前一日'}}缺卡率</th>` +
         '<th>排班率变化</th><th>缺卡率变化</th></tr></thead><tbody>';
-      for (const r of rows) {{
+      for (const r of pageRows) {{
         html += '<tr>' +
           `<td>${{r['区域']}}</td>` +
           `<td>${{r['部门']}}</td>` +
@@ -620,20 +640,25 @@ def build_html(data):
       }}
       html += '</tbody></table>';
       document.getElementById('summaryTable').innerHTML = html;
+      document.getElementById('summaryPageInfo').textContent = `第${{sPage}}/${{pages}}页，共${{rows.length}}条`;
     }}
-    renderSummary(summarySource);
+    renderSummary(summaryFiltered);
     document.getElementById('applyRegion').addEventListener('click', () => {{
       const kw = (document.getElementById('kw').value || '').trim();
       const tp = document.getElementById('type').value;
-      const rows = summarySource.filter(r => {{
+      summaryFiltered = summarySource.filter(r => {{
         const txt = (r['区域'] + ' ' + r['部门']);
         if (kw && !txt.includes(kw)) return false;
         if (tp === '大区' && r['区域'] === '中后台') return false;
         if (tp === '中后台' && r['区域'] !== '中后台') return false;
         return true;
       }});
-      renderSummary(rows);
+      sPage = 1;
+      renderSummary(summaryFiltered);
     }});
+    document.getElementById('sPageSize').addEventListener('change', () => {{ sPage = 1; renderSummary(summaryFiltered); }});
+    document.getElementById('sPrevPage').addEventListener('click', () => {{ sPage -= 1; renderSummary(summaryFiltered); }});
+    document.getElementById('sNextPage').addEventListener('click', () => {{ sPage += 1; renderSummary(summaryFiltered); }});
 
     const detailSource = DATA.detail_rows || [];
     let detailFiltered = detailSource.slice();
