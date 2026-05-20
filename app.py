@@ -3,6 +3,8 @@
 
 import json
 import tempfile
+import csv
+import io
 from pathlib import Path
 
 import streamlit as st
@@ -50,7 +52,8 @@ st.caption("上传数据 -> 一键生成考勤晾晒结果 -> 在线查看报表
 
 with st.expander("上传说明", expanded=False):
     st.markdown(
-        "- 必传：主明细、排班明细、离职流程、签字报表\n"
+        "- 必传：主明细.xlsx + 签字报表.xlsx\n"
+        "- 系统将自动解析 xlsx，生成结构化 JSON 与考勤报表\n"
         "- 可选：规则文档（用于留档，不参与计算）\n"
         f"- 单文件上限：{MAX_FILE_MB}MB"
     )
@@ -105,17 +108,18 @@ if "report_result" in st.session_state and "report_html" in st.session_state:
     json_text = st.session_state["report_json_text"]
     kpi = result.get("kpi", {})
     trend = result.get("kpi_trend", {})
+    detail_rows = result.get("detail_rows", [])
 
     st.subheader("核心指标")
     c1, c2, c3, c4, c5 = st.columns(5)
-    c1.metric("总人数", int(kpi.get("总员工数", 0)))
+    c1.metric("总人数", int(kpi.get("总人数", 0)))
     c2.metric("未排班数", int(kpi.get("未排班数", 0)))
     c3.metric("排班率", f"{(kpi.get('排班率') or 0)*100:.2f}%", _trend_text(trend.get("排班率")))
     c4.metric("HUB排班正确率", f"{(kpi.get('HUB排班正确率') or 0)*100:.2f}%", _trend_text(trend.get("HUB排班正确率")))
     c5.metric("缺卡率", f"{(kpi.get('缺卡率') or 0)*100:.2f}%", _trend_text(trend.get("缺卡率")))
 
     st.subheader("下载结果")
-    d1, d2 = st.columns(2)
+    d1, d2, d3 = st.columns(3)
     d1.download_button(
         "下载 attendance_report.html",
         data=html.encode("utf-8"),
@@ -130,6 +134,18 @@ if "report_result" in st.session_state and "report_html" in st.session_state:
         mime="application/json",
         use_container_width=True,
     )
+    if detail_rows:
+        csv_buf = io.StringIO()
+        writer = csv.DictWriter(csv_buf, fieldnames=list(detail_rows[0].keys()))
+        writer.writeheader()
+        writer.writerows(detail_rows)
+        d3.download_button(
+            "下载 attendance_report_detail.csv",
+            data=csv_buf.getvalue().encode("utf-8-sig"),
+            file_name="attendance_report_detail.csv",
+            mime="text/csv",
+            use_container_width=True,
+        )
 
     st.subheader("在线预览报表")
     st.components.v1.html(html, height=1200, scrolling=True)
